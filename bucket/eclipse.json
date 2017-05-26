@@ -1,0 +1,8 @@
+{
+    "dstDir": "eclipse",
+    "tasks": {
+        "unzip": {
+            "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/IDE/eclipse/eclipse-jee-neon-3-win32-x86_64.zip"
+        }
+    }
+}

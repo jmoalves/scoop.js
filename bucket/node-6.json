@@ -1,0 +1,9 @@
+{
+    "dstDir": "node-6",
+    "tasks": {
+        "unzip": {
+            "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/nodejs/node-v6.10.3-win-x64.zip",
+            "strip": "true"
+        }
+    }
+}

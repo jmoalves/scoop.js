@@ -1,0 +1,8 @@
+{
+    "dstDir": "cntlm",
+    "tasks": {
+        "unzip": {
+            "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/cntlm/cntlm-0.92.3.zip"
+        }
+    }
+}

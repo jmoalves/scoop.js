@@ -1,0 +1,9 @@
+{
+    "dstDir": "jdk",
+    "chkDir": "jdk/jdk1.6.0_45",
+    "tasks": {
+        "unzip": {
+            "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/jdk/jdk1.6.0_45.zip"
+        }
+    }
+}

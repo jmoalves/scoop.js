@@ -1,0 +1,7 @@
+{
+    "depends": [
+        "jdk-8-oracle",
+        "maven-3.0",
+        "node-6"
+    ]
+}

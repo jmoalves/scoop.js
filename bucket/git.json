@@ -1,0 +1,8 @@
+{
+    "dstDir": "git",
+    "tasks": {
+        "exec": {
+            "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/git/PortableGit-2.11.1-64-bit.7z.exe"
+        }
+    }
+}
