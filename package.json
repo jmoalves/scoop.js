@@ -9,6 +9,7 @@
   "author": "João Mauricio Alves",
   "license": "ISC",
   "dependencies": {
+    "minimist": "^1.2.0",
     "unzip": "^0.1.11"
   }
 }

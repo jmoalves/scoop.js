@@ -5,53 +5,47 @@ const path = require('path');
 const os = require('os');
 const http = require('http');
 const unzip = require('unzip');
+const parseArgs = require('minimist');
 
 var fail = false;
 var jsons = {};
-var envRoot = '/home/jmoalves/bndes-java-env';
+var envRoot = undefined;
 var bucket = './bucket';
 var force = false;
 
-process.argv.forEach((val, index) => {
-    if (index < 2) {
-        return;
-    }
+var args = parseArgs(process.argv.slice(2));
 
-    if (val == '-F') {
-        force = true;
-        return;
-    }
-
-    resolvePackage(val);
-});
-
-function resolvePackage(pkg) {
-    if (jsons[pkg]) {
-        return;
-    }
-
-    var file = path.resolve(bucket, pkg + '.json');
-    if (!fs.existsSync(file)) {
-        console.log(file + ' nao existe');
-        fail = true;
-    }
-
-    var json = JSON.parse(fs.readFileSync(file, { 'encoding': 'UTF-8' }));
-    if (json.depends) {
-        json.depends.sort(); // para a ordem dos nao dependentes ser deterministica
-        for (var dep in json.depends) {
-            resolvePackage(json.depends[dep]);
-        }
-    }
-
-    jsons[pkg] = json;
+if (args.F) {
+    force = true;
 }
+
+if (args.d) {
+    envRoot = args.d;
+} else {
+    switch (os.platform()) {
+        case 'win32':
+            envRoot = 'd:/bndes-java-env';
+            break;
+        
+        case 'linux':
+            envRoot = os.homedir() + '/bndes-java-env';
+            break;
+        
+        default:
+            console.log('Defina o destino com -d');
+            fail = true;
+    }
+}
+
+
+args._.forEach((val, index) => resolvePackage(val));
 
 if (fail) {
     process.exit(1);
 }
 
 for (var pkg in jsons) {
+    console.log('[' + pkg + ']');
     if (!jsons[pkg].dstDir) {
         continue;
     }
@@ -85,10 +79,48 @@ for (var pkg in jsons) {
     }
 };
 
-function bje_unzip(buf, task) {
-    console.log('\tUNZIP - url: ' + task.url);
+// Encerra o codigo principal
+process.exit(0);
 
-    http.get(task.url, function(res) {
+//----------------------------------------------------------------------------
+// Funcoes
+//----------------------------------------------------------------------------
+function resolvePackage(pkg) {
+    if (jsons[pkg]) {
+        return;
+    }
+
+    var file = path.resolve(bucket, pkg + '.json');
+    if (!fs.existsSync(file)) {
+        console.log(file + ' nao existe');
+        fail = true;
+        return;
+    }
+
+    var json = JSON.parse(fs.readFileSync(file, { 'encoding': 'UTF-8' }));
+    if (json.depends) {
+        json.depends.sort(); // para a ordem dos nao dependentes ser deterministica
+        for (var dep in json.depends) {
+            resolvePackage(json.depends[dep]);
+        }
+    }
+
+    jsons[pkg] = json;
+}
+
+function bje_unzip(buf, task) {
+    var url = task.url;
+    if (!url && task[os.platform()]) {
+        url = task[os.platform()].url;
+    }
+
+    if (!url) {
+        fail = true;
+        return;
+    }
+
+    console.log('\tUNZIP - url: ' + url);
+    http.get(url, function(res) {
         var dstDir = path.resolve(envRoot, buf.dstDir);
         console.log('\tUNZIP - to: ' + dstDir);
 
