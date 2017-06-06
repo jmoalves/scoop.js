@@ -1,15 +1,15 @@
 {
-  "name": "scoop.js",
-  "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "João Mauricio Alves",
-  "license": "ISC",
-  "dependencies": {
-    "minimist": "^1.2.0",
-    "unzip": "^0.1.11"
-  }
+    "name": "scoop.js",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "João Mauricio Alves",
+    "license": "ISC",
+    "dependencies": {
+        "minimist": "^1.2.0",
+        "unzip": "^0.1.11"
+    }
 }
