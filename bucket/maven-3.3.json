@@ -1,5 +1,6 @@
 {
     "dstDir": "maven",
+    "chkDir": "maven/apache-maven-3.3.9",
     "tasks": {
         "unzip": {
             "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/maven/apache-maven-3.3.9-bin.zip"

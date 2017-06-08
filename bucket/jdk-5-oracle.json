@@ -4,7 +4,9 @@
     "tasks": {
         "unzip": {
             "win32": {
-                "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/jdk/jdk1.5.0_22.zip"
+                "x64": {
+                    "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/jdk/jdk1.5.0_22.zip"
+                }
             }
         }
     }

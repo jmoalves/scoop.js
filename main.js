@@ -1,96 +1,108 @@
 'use strict';
 
+// 3rd party modules
 const fs = require('fs');
+const parseArgs = require('minimist');
 const path = require('path');
 const os = require('os');
-const http = require('http');
-const unzip = require('unzip');
-const parseArgs = require('minimist');
+
+// local modules
+const taskMap = require('./taskMap.js');
 
 var fail = false;
-var jsons = {};
-var envRoot = undefined;
-var bucket = './bucket';
 var force = false;
 
 var args = parseArgs(process.argv.slice(2));
+// console.log('args = ' + JSON.stringify(args, null, 3));
+
+var config = {};
+if (args.c) {
+    config = loadConfig(args.c);
+}
+config = defaultConfig(config);
 
 if (args.F) {
     force = true;
 }
 
 if (args.d) {
-    envRoot = args.d;
-} else {
-    switch (os.platform()) {
-        case 'win32':
-            envRoot = 'd:/bndes-java-env';
-            break;
-        
-        case 'linux':
-            envRoot = os.homedir() + '/bndes-java-env';
-            break;
-        
-        default:
-            console.log('Defina o destino com -d');
-            fail = true;
-    }
+    config.envRoot = args.d;
 }
 
+var pkgs = {};
 
-args._.forEach((val, index) => resolvePackage(val));
+if (args._) {
+    args._.forEach((val) => resolvePackage(val, pkgs));
+} else {
+    fail = true;
+}
 
 if (fail) {
     process.exit(1);
 }
 
-for (var pkg in jsons) {
-    console.log('[' + pkg + ']');
-    if (!jsons[pkg].dstDir) {
-        continue;
-    }
-
-    var dstDir = path.resolve(envRoot, jsons[pkg].dstDir);
-    if (jsons[pkg].chkDir) {
-        var dstDir = path.resolve(envRoot, jsons[pkg].chkDir);
-    }
-
-    if (fs.existsSync(dstDir)) {
-        console.log('[' + pkg + '] - ja instalado em ' + dstDir);
-        if (!force) {
-            continue;
-        }
-
-        console.log('[' + pkg + '] - REMOVENDO ' + dstDir);
-        forceRemove(dstDir);
-    }
-
-    console.log('[' + pkg + '] - INSTALL');
-    for (var task in jsons[pkg].tasks) {
-        switch (task) {
-            case 'unzip':
-                bje_unzip(jsons[pkg], jsons[pkg].tasks[task]);
-                break;
-
-            default:
-                console.log('\t' + task + ' - Task nao suportada!');
-                break;
-        }
-    }
-};
-
-// Encerra o codigo principal
-process.exit(0);
+console.log('config = ' + JSON.stringify(config, null, 3));
+var entries = [];
+for (var x in pkgs) {
+    entries.push(pkgs[x]);
+}
+installPackage(entries);
 
 //----------------------------------------------------------------------------
 // Funcoes
 //----------------------------------------------------------------------------
-function resolvePackage(pkg) {
+function loadConfig(cfg) {
+    var file = cfg;
+    if (!fs.existsSync(file)) {
+        console.log(file + ' nao existe');
+        fail = true;
+        return;
+    }
+
+    var json = JSON.parse(fs.readFileSync(file, { 'encoding': 'UTF-8' }));
+    return json;
+}
+
+function defaultConfig(userConfig) {
+    var newConfig = userConfig;
+
+    if (!newConfig.envRoot) {
+        switch (os.platform()) {
+            case 'win32':
+                config.envRoot = 'd:/bndes-dev-env';
+                break;
+
+            case 'linux':
+                config.envRoot = os.homedir() + '/bndes-dev-env';
+                break;
+
+            default:
+                console.log('envRoot sem default para ' + os.platform() + ' - Defina o destino com -d');
+                fail = true;
+        }
+    }
+
+    if (!newConfig.bucket) {
+        newConfig.bucket = './bucket';
+    }
+    newConfig.bucket = path.resolve(newConfig.bucket);
+
+    return newConfig;
+}
+
+function resolvePackage(pkg, jsons) {
+    if (!pkg) {
+        // Isso não deveria ser necessário...
+        // FIXME: Tratar forEach corretamente. 
+        return;
+    }
+
     if (jsons[pkg]) {
         return;
     }
 
-    var file = path.resolve(bucket, pkg + '.json');
+    var file = path.resolve(config.bucket, pkg + '.json');
+    // console.log('DEBUG: ' + pkg + ' bucket - ' + config.bucket + ' file: ' + file);
     if (!fs.existsSync(file)) {
         console.log(file + ' nao existe');
         fail = true;
@@ -101,49 +113,12 @@ function resolvePackage(pkg) {
     if (json.depends) {
         json.depends.sort(); // para a ordem dos nao dependentes ser deterministica
         for (var dep in json.depends) {
-            resolvePackage(json.depends[dep]);
+            resolvePackage(json.depends[dep], jsons);
         }
     }
 
+    json.name = pkg;
     jsons[pkg] = json;
-}
-
-function bje_unzip(buf, task) {
-    var url = task.url;
-    if (!url && task[os.platform()]) {
-        url = task[os.platform()].url;
-    }
-
-    if (!url) {
-        fail = true;
-        return;
-    }
-
-    console.log('\tUNZIP - url: ' + url);
-    http.get(url, function(res) {
-        var dstDir = path.resolve(envRoot, buf.dstDir);
-        console.log('\tUNZIP - to: ' + dstDir);
-
-        if (task.strip && task.strip == 'true') {
-            res.on('end', () => {
-                for (var toStrip of fs.readdirSync(dstDir)) {
-                    for (var child of fs.readdirSync(path.resolve(dstDir, toStrip))) {
-                        var from = path.resolve(dstDir, toStrip, child);
-                        var dst = path.resolve(dstDir, child);
-                        // console.log(from + ' => ' + dst);
-                        fs.renameSync(from, dst);
-                    }
-                    fs.rmdir(path.resolve(dstDir, toStrip));
-                }
-            });
-        }
-
-        res.on('error', (error) => {
-            console.log('ERROR: ' + error.message);
-        })
-
-        res.pipe(unzip.Extract({ path: dstDir }));
-    });
 }
 
 function forceRemove(file) {
@@ -155,5 +130,59 @@ function forceRemove(file) {
         fs.rmdirSync(file);
     } else {
         fs.unlinkSync(file);
+    }
+}
+
+function installPackage(pkgs) {
+    // console.log('installPackage() pkgs => ' + JSON.stringify(pkgs));
+    var pkg = pkgs.shift();
+
+    if (!pkg) {
+        return;
+    }
+
+    console.log('');
+    console.log('[' + pkg.name + ']');
+    if (!pkg.dstDir) {
+        installPackage(pkgs);
+        return;
+    }
+
+    var chkDir = path.resolve(config.envRoot, pkg.dstDir);
+    if (pkg.chkDir) {
+        chkDir = path.resolve(config.envRoot, pkg.chkDir);
+    }
+
+    if (fs.existsSync(chkDir)) {
+        console.log('[' + pkg.name + '] - ja instalado em ' + chkDir);
+        if (!force) {
+            installPackage(pkgs);
+            return;
+        }
+
+        console.log('[' + pkg.name + '] - REMOVENDO ' + chkDir);
+        forceRemove(chkDir);
+    }
+
+    console.log('[' + pkg.name + '] - INSTALL');
+    var tasks = [];
+    for (var x in pkg.tasks) {
+        pkg.tasks[x].name = x;
+        tasks.push(pkg.tasks[x]);
+    }
+    runTask(config, pkg, tasks, runTask);
+
+    function runTask(config, pkg, tasks, next) {
+        var task = tasks.shift();
+        if (task) {
+            // console.log('[' + pkg.name + '] - TASK -> ' + JSON.stringify(task, null, 3));
+            if (taskMap[task.name]) {
+                taskMap[task.name](config, pkg, task, tasks, next);
+            } else {
+                console.log('\t' + task.name + ' - Task nao suportada!');
+            }
+        } else {
+            installPackage(pkgs);
+        }
     }
 }
