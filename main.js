@@ -83,7 +83,7 @@ function defaultConfig(userConfig) {
     }
 
     if (!newConfig.bucket) {
-        newConfig.bucket = './bucket';
+        newConfig.bucket = './buckets';
     }
     newConfig.bucket = path.resolve(newConfig.bucket);
 
