@@ -1,10 +1,12 @@
 'use strict';
 
-// 3rd party modules
+// Node modules
 const fs = require('fs');
-const parseArgs = require('minimist');
 const path = require('path');
 const os = require('os');
+
+// 3rd party modules
+const parseArgs = require('minimist');
 
 // local modules
 const taskMap = require('./taskMap.js');
