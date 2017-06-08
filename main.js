@@ -69,11 +69,11 @@ function defaultConfig(userConfig) {
     if (!newConfig.envRoot) {
         switch (os.platform()) {
             case 'win32':
-                config.envRoot = 'd:/bndes-dev-env';
+                config.envRoot = 'd:/bndes-java-env';
                 break;
 
             case 'linux':
-                config.envRoot = os.homedir() + '/bndes-dev-env';
+                config.envRoot = os.homedir() + '/bndes-java-env';
                 break;
 
             default:
