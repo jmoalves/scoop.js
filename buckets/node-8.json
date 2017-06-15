@@ -1,0 +1,24 @@
+{
+    "dstDir": "node-8",
+    "tasks": {
+        "unzip": {
+            "strip": "true",
+            "linux": {
+                "x32": {
+                    "url": "${config.repoURL}/nodejs/node-v8.1.0-linux-x86.tar.xz"
+                },
+                "x64": {
+                    "url": "${config.repoURL}/nodejs/node-v8.1.0-linux-x64.tar.xz"
+                }
+            },
+            "win32": {
+                "x32": {
+                    "url": "${config.repoURL}/nodejs/node-v8.1.0-win-x86.zip"
+                },
+                "x64": {
+                    "url": "${config.repoURL}/nodejs/node-v8.1.0-win-x64.zip"
+                }
+            }
+        }
+    }
+}

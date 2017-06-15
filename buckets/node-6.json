@@ -2,24 +2,21 @@
     "dstDir": "node-6",
     "tasks": {
         "unzip": {
+            "strip": "true",
             "linux": {
                 "x32": {
-                    "url": "${config.repoURL}/nodejs/node-v6.11.0-linux-x86.tar.xz",
-                    "strip": "true"
+                    "url": "${config.repoURL}/nodejs/node-v6.11.0-linux-x86.tar.xz"
                 },
                 "x64": {
-                    "url": "${config.repoURL}/nodejs/node-v6.11.0-linux-x64.tar.xz",
-                    "strip": "true"
+                    "url": "${config.repoURL}/nodejs/node-v6.11.0-linux-x64.tar.xz"
                 }
             },
             "win32": {
                 "x32": {
-                    "url": "${config.repoURL}/nodejs/node-v6.11.0-win-x86.zip",
-                    "strip": "true"
+                    "url": "${config.repoURL}/nodejs/node-v6.11.0-win-x86.zip"
                 },
                 "x64": {
-                    "url": "${config.repoURL}/nodejs/node-v6.11.0-win-x64.zip",
-                    "strip": "true"
+                    "url": "${config.repoURL}/nodejs/node-v6.11.0-win-x64.zip"
                 }
             }
         }

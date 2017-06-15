@@ -47,29 +47,29 @@ module.exports = function(config, pkg, task, tasks, next) {
         });
 
         if (url.endsWith('.zip')) {
-            res.pipe(unzip.Extract({ path: dstDir }));
+            res.pipe(unzip.Extract({ path: dstDir })).on('finish', strip);
         } else if (url.endsWith('.tar.gz')) {
-            res.pipe(gunzip()).pipe(tar.extract(dstDir));
+            res.pipe(gunzip()).pipe(tar.extract(dstDir)).on('finish', strip);
         } else if (url.endsWith('.tar.xz')) {
-            res.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir));
+            res.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir)).on('finish', strip);
         } else {
             throw "Can't handle file: " + url;
         }
-
-        res.on('end', () => {
-            if (task.strip && task.strip == 'true') {
-                for (var toStrip of fs.readdirSync(dstDir)) {
-                    for (var child of fs.readdirSync(path.resolve(dstDir, toStrip))) {
-                        var from = path.resolve(dstDir, toStrip, child);
-                        var dst = path.resolve(dstDir, child);
-                        console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
-                        fs.renameSync(from, dst);
-                    }
-                    fs.rmdir(path.resolve(dstDir, toStrip));
-                }
-            }
-
-            next(config, pkg, tasks, next);
-        });
     });
+
+    function strip() {
+        if (task.strip && task.strip == 'true') {
+            for (var toStrip of fs.readdirSync(dstDir)) {
+                for (var child of fs.readdirSync(path.resolve(dstDir, toStrip))) {
+                    var from = path.resolve(dstDir, toStrip, child);
+                    var dst = path.resolve(dstDir, child);
+                    console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
+                    fs.renameSync(from, dst);
+                }
+                fs.rmdir(path.resolve(dstDir, toStrip));
+            }
+        }
+
+        next(config, pkg, tasks, next);
+    }
 }
