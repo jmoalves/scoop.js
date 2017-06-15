@@ -40,8 +40,6 @@ module.exports = function(config, pkg, task, tasks, next) {
     console.log('[' + pkg.name + ']\tUNZIP -  to: ' + dstDir);
 
     http.get(url, (res) => {
-        console.log('[' + pkg.name + ']\tUNZIP - callback');
-
         res.on('error', (error) => {
             console.log('[' + pkg.name + ']\tUNZIP - ERROR: ' + error.message);
         });
