@@ -1,0 +1,13 @@
+{
+    "depends": [
+        "jdk-8-oracle",
+        "wlp-workspace"
+    ],
+    "dstDir": "AppSrv/wlp/runtimes/wlp-17.0.0.2",
+    "tasks": {
+        "unzip": {
+            "strip": "true",
+            "url": "${config.repoURL}/AppSrv/wlp/wlp-javaee7-17.0.0.2.zip"
+        }
+    }
+}

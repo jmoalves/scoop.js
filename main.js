@@ -139,11 +139,13 @@ function installPackage(pkgs) {
     console.log('');
     console.log('[' + pkg.name + ']');
     if (!pkg.dstDir) {
+        console.log('[' + pkg.name + '] - SEM dstDir!');
         installPackage(pkgs);
         return;
     }
 
-    var chkDir = path.resolve(config.envRoot, pkg.dstDir);
+    var dstDir = path.resolve(config.envRoot, pkg.dstDir);
+    var chkDir = dstDir;
     if (pkg.chkDir) {
         chkDir = path.resolve(config.envRoot, pkg.chkDir);
     }
@@ -165,14 +167,14 @@ function installPackage(pkgs) {
         pkg.tasks[x].name = x;
         tasks.push(pkg.tasks[x]);
     }
-    runTask(config, pkg, tasks, runTask);
+    runTask(config, dstDir, pkg, tasks, runTask);
 
-    function runTask(config, pkg, tasks, next) {
+    function runTask(config, dstDir, pkg, tasks, next) {
         var task = tasks.shift();
         if (task) {
             // console.log('[' + pkg.name + '] - TASK -> ' + JSON.stringify(task, null, 3));
             if (taskMap[task.name]) {
-                taskMap[task.name](config, pkg, task, tasks, next);
+                taskMap[task.name](config, dstDir, pkg, task, tasks, next);
             } else {
                 console.log('\t' + task.name + ' - Task nao suportada!');
             }

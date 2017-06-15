@@ -1,4 +1,5 @@
 module.exports = {
+    "exec": require('./tasks/exec.js'),
     "unzip": require('./tasks/unzip.js'),
-    "exec": require('./tasks/exec.js')
+    "wlpCfg": require('./tasks/wlpCfg.js')
 };

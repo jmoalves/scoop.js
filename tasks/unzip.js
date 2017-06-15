@@ -7,7 +7,7 @@ const tar = require('tar-fs');
 const gunzip = require('gunzip-maybe');
 const xz = require("xz");
 
-module.exports = function(config, pkg, task, tasks, next) {
+module.exports = function(config, dstDir, pkg, task, tasks, next) {
     var url = undefined;
 
     if (task[os.platform()]) {
@@ -29,13 +29,12 @@ module.exports = function(config, pkg, task, tasks, next) {
     if (!url) {
         console.log('[' + pkg.name + ']\tUNZIP - Sem url que atenda ' + os.platform() + '-' + os.arch());
         fail = true;
-        next(config, pkg, tasks, next);
+        next(config, dstDir, pkg, tasks, next);
         return;
     }
 
     url = url.replace('${config.repoURL}', config.repoURL);
 
-    var dstDir = path.resolve(config.envRoot, pkg.dstDir);
     console.log('[' + pkg.name + ']\tUNZIP - url: ' + url);
     console.log('[' + pkg.name + ']\tUNZIP -  to: ' + dstDir);
 
@@ -68,6 +67,6 @@ module.exports = function(config, pkg, task, tasks, next) {
             }
         }
 
-        next(config, pkg, tasks, next);
+        next(config, dstDir, pkg, tasks, next);
     }
 }

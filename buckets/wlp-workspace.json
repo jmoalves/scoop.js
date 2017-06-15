@@ -1,0 +1,7 @@
+{
+    "dstDir": "AppSrv/wlp",
+
+    "tasks": {
+        "wlpCfg": {}
+    }
+}
