@@ -8,6 +8,9 @@
         "unzip": {
             "strip": "true",
             "url": "${config.repoURL}/AppSrv/wlp/wlp-javaee7-17.0.0.2.zip"
-        }
+        },
+        "del": [
+            "usr"
+        ]
     }
 }
