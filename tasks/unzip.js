@@ -63,7 +63,7 @@ module.exports = function(config, pkg, task, tasks, next) {
                 for (var child of fs.readdirSync(path.resolve(dstDir, toStrip))) {
                     var from = path.resolve(dstDir, toStrip, child);
                     var dst = path.resolve(dstDir, child);
-                    console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
+                    // console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
                     fs.renameSync(from, dst);
                 }
                 fs.rmdir(path.resolve(dstDir, toStrip));
