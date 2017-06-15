@@ -1,9 +1,16 @@
 {
     "dstDir": "jdk",
-    "chkDir": "jdk/jdk1.7.0_45",
+    "chkDir": "jdk/jdk1.7.0_80",
     "tasks": {
         "unzip": {
-            "url": "${config.repoURL}/jdk/jdk1.7.0_45.zip"
+            "linux": {
+                "x32": {
+                    "url": "${config.repoURL}/jdk/jdk-7u80-linux-i586.tar.gz"
+                },
+                "x64": {
+                    "url": "${config.repoURL}/jdk/jdk-7u80-linux-x64.tar.gz"
+                }
+            }
         }
     }
 }
