@@ -69,25 +69,18 @@ function defaultConfig(userConfig) {
     var newConfig = userConfig;
 
     if (!newConfig.envRoot) {
-        switch (os.platform()) {
-            case 'win32':
-                config.envRoot = 'd:/bndes-java-env';
-                break;
-
-            case 'linux':
-                config.envRoot = os.homedir() + '/bndes-java-env';
-                break;
-
-            default:
-                console.log('envRoot sem default para ' + os.platform() + ' - Defina o destino com -d');
-                fail = true;
-        }
+        newConfig.envRoot = os.homedir() + '/scoop-dev-env';
     }
+    newConfig.envRoot = path.resolve(newConfig.envRoot);
 
     if (!newConfig.bucket) {
         newConfig.bucket = './buckets';
     }
     newConfig.bucket = path.resolve(newConfig.bucket);
+
+    if (!newConfig.repoURL) {
+        newConfig.repoURL = 'http://localhost:8083/sti-bndes-java-env/install-repo/raw/master';
+    }
 
     return newConfig;
 }

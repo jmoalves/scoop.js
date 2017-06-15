@@ -2,7 +2,7 @@
     "dstDir": "jdk",
     "tasks": {
         "unzip": {
-            "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/jdk/ibm_sdk80SR3.zip"
+            "url": "${config.repoURL}/jdk/ibm_sdk80SR3.zip"
         }
     }
 }

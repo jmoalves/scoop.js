@@ -2,8 +2,26 @@
     "dstDir": "node-6",
     "tasks": {
         "unzip": {
-            "url": "http://localhost:8083/sti-bndes-java-env/bndes-java-env/raw/master/nodejs/node-v6.10.3-win-x64.zip",
-            "strip": "true"
+            "linux": {
+                "x32": {
+                    "url": "${config.repoURL}/nodejs/node-v6.11.0-linux-x86.tar.xz",
+                    "strip": "true"
+                },
+                "x64": {
+                    "url": "${config.repoURL}/nodejs/node-v6.11.0-linux-x64.tar.xz",
+                    "strip": "true"
+                }
+            },
+            "win32": {
+                "x32": {
+                    "url": "${config.repoURL}/nodejs/node-v6.11.0-win-x86.zip",
+                    "strip": "true"
+                },
+                "x64": {
+                    "url": "${config.repoURL}/nodejs/node-v6.11.0-win-x64.zip",
+                    "strip": "true"
+                }
+            }
         }
     }
 }

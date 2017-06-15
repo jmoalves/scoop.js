@@ -3,6 +3,9 @@ const http = require('http');
 const os = require('os');
 const path = require('path');
 const unzip = require('unzip');
+const tar = require('tar-fs');
+const gunzip = require('gunzip-maybe');
+const xz = require("xz");
 
 module.exports = function(config, pkg, task, tasks, next) {
     var url = undefined;
@@ -30,6 +33,8 @@ module.exports = function(config, pkg, task, tasks, next) {
         return;
     }
 
+    url = url.replace('${config.repoURL}', config.repoURL);
+
     var dstDir = path.resolve(config.envRoot, pkg.dstDir);
     console.log('[' + pkg.name + ']\tUNZIP - url: ' + url);
     console.log('[' + pkg.name + ']\tUNZIP -  to: ' + dstDir);
@@ -41,7 +46,15 @@ module.exports = function(config, pkg, task, tasks, next) {
             console.log('[' + pkg.name + ']\tUNZIP - ERROR: ' + error.message);
         });
 
-        res.pipe(unzip.Extract({ path: dstDir }));
+        if (url.endsWith('.zip')) {
+            res.pipe(unzip.Extract({ path: dstDir }));
+        } else if (url.endsWith('.tar.gz')) {
+            res.pipe(gunzip()).pipe(tar.extract(dstDir));
+        } else if (url.endsWith('.tar.xz')) {
+            res.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir));
+        } else {
+            throw "Can't handle file: " + url;
+        }
 
         res.on('end', () => {
             if (task.strip && task.strip == 'true') {
