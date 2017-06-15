@@ -1,9 +1,16 @@
 {
     "dstDir": "jdk",
-    "chkDir": "jdk/jdk1.8.0_112",
+    "chkDir": "jdk/jdk1.8.0_131",
     "tasks": {
         "unzip": {
-            "url": "${config.repoURL}/jdk/jdk1.8.0_112.zip"
+            "linux": {
+                "x32": {
+                    "url": "${config.repoURL}/jdk/jdk-8u131-linux-i586.tar.gz"
+                },
+                "x64": {
+                    "url": "${config.repoURL}/jdk/jdk-8u131-linux-x64.tar.gz"
+                }
+            }
         }
     }
 }
