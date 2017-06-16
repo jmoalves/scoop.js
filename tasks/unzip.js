@@ -5,7 +5,14 @@ const path = require('path');
 const unzip = require('unzipper');
 const tar = require('tar-fs');
 const gunzip = require('gunzip-maybe');
-const xz = require("xz");
+
+var xz = undefined;
+try {
+    xz = require("xz");
+} catch (error) {
+    console.log('Failed xz dependency');
+    xz = undefined;
+}
 
 module.exports = function(config, dstDir, pkg, task, tasks, next) {
     var url = undefined;
@@ -48,7 +55,7 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
             archive = res.pipe(unzip.Extract({ path: dstDir }));
         } else if (url.endsWith('.tar.gz')) {
             archive = res.pipe(gunzip()).pipe(tar.extract(dstDir));
-        } else if (url.endsWith('.tar.xz')) {
+        } else if (url.endsWith('.tar.xz') && xz) {
             archive = res.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir));
         } else {
             throw "Can't handle file: " + url;
