@@ -139,7 +139,7 @@ function installPackage(pkgs) {
     console.log('');
     console.log('[' + pkg.name + ']');
     if (!pkg.dstDir) {
-        console.log('[' + pkg.name + '] - SEM dstDir!');
+        // console.log('[' + pkg.name + '] - SEM dstDir!');
         installPackage(pkgs);
         return;
     }
