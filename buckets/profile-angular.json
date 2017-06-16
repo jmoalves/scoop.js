@@ -1,7 +1,12 @@
 {
     "depends": [
         "jdk-8-oracle",
-        "maven-3.0",
-        "node-6"
+        "maven-3.5",
+        "node-6",
+        "eclipse",
+        "vscode",
+        "wlp-16.0.0.4",
+        "wlp-17.0.0.1",
+        "wlp-17.0.0.2"
     ]
 }
