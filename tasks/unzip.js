@@ -2,7 +2,7 @@ const fs = require('fs');
 const http = require('http');
 const os = require('os');
 const path = require('path');
-const unzip = require('unzip');
+const unzip = require('unzipper');
 const tar = require('tar-fs');
 const gunzip = require('gunzip-maybe');
 const xz = require("xz");
@@ -40,18 +40,28 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
 
     http.get(url, (res) => {
         res.on('error', (error) => {
-            console.log('[' + pkg.name + ']\tUNZIP - ERROR: ' + error.message);
+            console.log('[' + pkg.name + ']\tUNZIP - HTTP ERROR: ' + error.message);
         });
 
+        var archive = undefined;
         if (url.endsWith('.zip')) {
-            res.pipe(unzip.Extract({ path: dstDir })).on('finish', strip);
+            archive = res.pipe(unzip.Extract({ path: dstDir }));
         } else if (url.endsWith('.tar.gz')) {
-            res.pipe(gunzip()).pipe(tar.extract(dstDir)).on('finish', strip);
+            archive = res.pipe(gunzip()).pipe(tar.extract(dstDir));
         } else if (url.endsWith('.tar.xz')) {
-            res.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir)).on('finish', strip);
+            archive = res.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir));
         } else {
             throw "Can't handle file: " + url;
         }
+
+        archive
+            .on('error', (error) => {
+                if (error.code != "ENOENT") {
+                    console.log('[' + pkg.name + ']\tUNZIP - EXTRACT ERROR: ' + JSON.stringify(error, null, 3));
+                    throw error;
+                }
+            })
+            .on('finish', strip);
     });
 
     function strip() {

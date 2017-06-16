@@ -2,6 +2,8 @@
     "dstDir": "AppSrv/wlp",
 
     "tasks": {
-        "wlpCfg": {}
+        "wlpCfg": {
+            "usrTemplate": "${config.repoURL}/AppSrv/wlp/wlp-javaee7-17.0.0.2.zip"
+        }
     }
 }
