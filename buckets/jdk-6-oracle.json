@@ -3,7 +3,9 @@
     "chkDir": "jdk/jdk1.6.0_45",
     "tasks": {
         "unzip": {
-            "url": "${config.repoURL}/jdk/jdk1.6.0_45.zip"
+            "win32": {
+                "url": "${config.repoURL}/jdk/jdk1.6.0_45.zip"
+            }
         }
     }
 }
