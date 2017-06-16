@@ -1,0 +1,16 @@
+{
+    "dstDir": "IDE/vscode",
+    "tasks": {
+        "unzip": {
+            "strip": "true",
+            "linux": {
+                "x64": {
+                    "url": "${config.repoURL}/IDE/vscode/code-stable-code_1.13.0-1496940180_amd64.tar.gz"
+                }
+            },
+            "win32": {
+                "url": "${config.repoURL}/IDE/vscode/VSCode-win32-ia32-1.13.0.zip"
+            }
+        }
+    }
+}
