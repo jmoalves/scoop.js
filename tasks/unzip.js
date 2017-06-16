@@ -73,15 +73,34 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
 
     function strip() {
         if (task.strip && task.strip == 'true') {
-            for (var toStrip of fs.readdirSync(dstDir)) {
-                for (var child of fs.readdirSync(path.resolve(dstDir, toStrip))) {
-                    var from = path.resolve(dstDir, toStrip, child);
+            var children = fs.readdirSync(dstDir);
+            console.log('[' + pkg.name + ']\tUNZIP - stripping ' + JSON.stringify(children) + ' from ' + dstDir);
+
+            if (children.length > 1) {
+                throw "Strip com mais de um diretorio - " + JSON.stringify(children);
+            }
+
+            // Diretorio temporario, para evitar colisoes
+            var tmpRootDir = fs.mkdtempSync(os.tmpdir() + path.sep + 'unzip-');
+            for (var toStrip of children) {
+                // Move o diretório para um tmp
+                var tmpDir = path.resolve(tmpRootDir, toStrip);
+                fs.renameSync(
+                    path.resolve(dstDir, toStrip),
+                    tmpDir);
+                for (var child of fs.readdirSync(tmpDir)) {
+                    var from = path.resolve(tmpDir, child);
                     var dst = path.resolve(dstDir, child);
                     // console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
                     fs.renameSync(from, dst);
                 }
-                fs.rmdir(path.resolve(dstDir, toStrip));
+
+                // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpDir);
+                fs.rmdir(tmpDir);
             }
+
+            // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpRootDir);
+            fs.rmdir(tmpRootDir);
         }
 
         next(config, dstDir, pkg, tasks, next);

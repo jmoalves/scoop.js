@@ -2,6 +2,7 @@
     "dstDir": "eclipse",
     "tasks": {
         "unzip": {
+            "strip": "true",
             "linux": {
                 "x32": {
                     "url": "${config.repoURL}/IDE/eclipse/eclipse-jee-neon-3-linux-gtk.tar.gz"
