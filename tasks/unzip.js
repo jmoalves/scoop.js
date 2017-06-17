@@ -50,59 +50,75 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
             console.log('[' + pkg.name + ']\tUNZIP - HTTP ERROR: ' + error.message);
         });
 
-        var archive = undefined;
-        if (url.endsWith('.zip')) {
-            archive = res.pipe(unzip.Extract({ path: dstDir }));
-        } else if (url.endsWith('.tar.gz')) {
-            archive = res.pipe(gunzip()).pipe(tar.extract(dstDir));
-        } else if (url.endsWith('.tar.xz') && xz) {
-            archive = res.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir));
-        } else {
-            throw "Can't handle file: " + url;
-        }
-
-        archive
+        var archiveTmpDir = fs.mkdtempSync(os.tmpdir() + path.sep + 'unzip-http-');
+        var archiveTmpFile = archiveTmpDir + path.sep + path.basename(url);
+        res.pipe(fs.createWriteStream(archiveTmpFile))
             .on('error', (error) => {
-                if (error.code != "ENOENT") {
-                    console.log('[' + pkg.name + ']\tUNZIP - EXTRACT ERROR: ' + JSON.stringify(error, null, 3));
-                    throw error;
-                }
+                console.log('[' + pkg.name + ']\tUNZIP - TMPFILE ERROR: ' + JSON.stringify(error, null, 3));
+                throw error;
             })
-            .on('finish', strip);
-    });
+            .on('finish', extractFile);
 
-    function strip() {
-        if (task.strip && task.strip == 'true') {
-            var children = fs.readdirSync(dstDir);
-            console.log('[' + pkg.name + ']\tUNZIP - stripping ' + JSON.stringify(children) + ' from ' + dstDir);
+        function extractFile() {
+            stream = fs.createReadStream(archiveTmpFile);
 
-            if (children.length > 1) {
-                throw "Strip com mais de um diretorio - " + JSON.stringify(children);
+            var archive = undefined;
+            if (archiveTmpFile.endsWith('.zip')) {
+                archive = stream.pipe(unzip.Extract({ path: dstDir }));
+            } else if (archiveTmpFile.endsWith('.tar.gz')) {
+                archive = stream.pipe(gunzip()).pipe(tar.extract(dstDir));
+            } else if (archiveTmpFile.endsWith('.tar.xz') && xz) {
+                archive = stream.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir));
+            } else {
+                throw "Can't handle file: " + tmpFile;
             }
 
-            // Diretorio temporario, para evitar colisoes
-            var tmpRootDir = fs.mkdtempSync(os.tmpdir() + path.sep + 'unzip-');
-            for (var toStrip of children) {
-                // Move o diretório para um tmp
-                var tmpDir = path.resolve(tmpRootDir, toStrip);
-                fs.renameSync(
-                    path.resolve(dstDir, toStrip),
-                    tmpDir);
-                for (var child of fs.readdirSync(tmpDir)) {
-                    var from = path.resolve(tmpDir, child);
-                    var dst = path.resolve(dstDir, child);
-                    // console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
-                    fs.renameSync(from, dst);
-                }
-
-                // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpDir);
-                fs.rmdir(tmpDir);
-            }
-
-            // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpRootDir);
-            fs.rmdir(tmpRootDir);
+            archive
+                .on('error', (error) => {
+                    if (error.code != "ENOENT") {
+                        console.log('[' + pkg.name + ']\tUNZIP - EXTRACT ERROR: ' + JSON.stringify(error, null, 3));
+                        throw error;
+                    }
+                })
+                .on('finish', extractFinished);
         }
 
-        next(config, dstDir, pkg, tasks, next);
-    }
+        function extractFinished() {
+            if (task.strip && task.strip == 'true') {
+                var children = fs.readdirSync(dstDir);
+                console.log('[' + pkg.name + ']\tUNZIP - stripping ' + JSON.stringify(children) + ' from ' + dstDir);
+
+                if (children.length > 1) {
+                    throw "Strip com mais de um diretorio - " + JSON.stringify(children);
+                }
+
+                // Diretorio temporario, para evitar colisoes
+                var tmpRootDir = fs.mkdtempSync(os.tmpdir() + path.sep + 'unzip-strip-');
+                for (var toStrip of children) {
+                    // Move o diretório para um tmp
+                    var tmpDir = path.resolve(tmpRootDir, toStrip);
+                    fs.renameSync(
+                        path.resolve(dstDir, toStrip),
+                        tmpDir);
+                    for (var child of fs.readdirSync(tmpDir)) {
+                        var from = path.resolve(tmpDir, child);
+                        var dst = path.resolve(dstDir, child);
+                        // console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
+                        fs.renameSync(from, dst);
+                    }
+
+                    // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpDir);
+                    fs.rmdir(tmpDir);
+                }
+
+                // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpRootDir);
+                fs.rmdir(tmpRootDir);
+            }
+
+            fs.unlinkSync(archiveTmpFile);
+            fs.rmdir(archiveTmpDir);
+
+            next(config, dstDir, pkg, tasks, next);
+        }
+    });
 }
