@@ -115,7 +115,10 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
                 fs.rmdir(tmpRootDir);
             }
 
+            console.log('[' + pkg.name + ']\tUNZIP - extract - rm ' + archiveTmpFile);
             fs.unlinkSync(archiveTmpFile);
+
+            console.log('[' + pkg.name + ']\tUNZIP - extract - rmdir ' + archiveTmpDir);
             fs.rmdir(archiveTmpDir);
 
             next(config, dstDir, pkg, tasks, next);
