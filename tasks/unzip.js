@@ -57,10 +57,14 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
                 console.log('[' + pkg.name + ']\tUNZIP - TMPFILE ERROR: ' + JSON.stringify(error, null, 3));
                 throw error;
             })
-            .on('finish', extractFile);
+            .on('finish', () => {
+                setImmediate(extractFile);
+            });
 
         function extractFile() {
-            stream = fs.createReadStream(archiveTmpFile);
+            console.log('[' + pkg.name + ']\tUNZIP - TMPFILE ended: ' + archiveTmpFile);
+
+            var stream = fs.createReadStream(archiveTmpFile);
 
             var archive = undefined;
             if (archiveTmpFile.endsWith('.zip')) {
@@ -70,20 +74,24 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
             } else if (archiveTmpFile.endsWith('.tar.xz') && xz) {
                 archive = stream.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir));
             } else {
-                throw "Can't handle file: " + tmpFile;
+                throw "Can't handle file: " + archiveTmpFile;
             }
 
             archive
                 .on('error', (error) => {
                     if (error.code != "ENOENT") {
                         console.log('[' + pkg.name + ']\tUNZIP - EXTRACT ERROR: ' + JSON.stringify(error, null, 3));
-                        throw error;
+                        //throw error;
                     }
                 })
-                .on('finish', extractFinished);
+                .on('finish', () => {
+                    setImmediate(extractFinished);
+                });
         }
 
         function extractFinished() {
+            console.log('[' + pkg.name + ']\tUNZIP - finished ' + path.basename(archiveTmpFile));
+
             if (task.strip && task.strip == 'true') {
                 var children = fs.readdirSync(dstDir);
                 console.log('[' + pkg.name + ']\tUNZIP - stripping ' + JSON.stringify(children) + ' from ' + dstDir);
@@ -103,23 +111,23 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
                     for (var child of fs.readdirSync(tmpDir)) {
                         var from = path.resolve(tmpDir, child);
                         var dst = path.resolve(dstDir, child);
-                        // console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
+                        console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
                         fs.renameSync(from, dst);
                     }
 
-                    // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpDir);
-                    fs.rmdir(tmpDir);
+                    console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpDir);
+                    fs.rmdirSync(tmpDir);
                 }
 
-                // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpRootDir);
-                fs.rmdir(tmpRootDir);
+                console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpRootDir);
+                fs.rmdirSync(tmpRootDir);
             }
 
             console.log('[' + pkg.name + ']\tUNZIP - extract - rm ' + archiveTmpFile);
             fs.unlinkSync(archiveTmpFile);
 
             console.log('[' + pkg.name + ']\tUNZIP - extract - rmdir ' + archiveTmpDir);
-            fs.rmdir(archiveTmpDir);
+            fs.rmdirSync(archiveTmpDir);
 
             next(config, dstDir, pkg, tasks, next);
         }
