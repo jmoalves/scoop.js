@@ -1,5 +1,5 @@
 {
-    "dstDir": "eclipse",
+    "dstDir": "IDE/eclipse",
     "tasks": {
         "unzip": {
             "strip": "true",
