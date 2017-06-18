@@ -129,58 +129,63 @@ function forceRemove(file) {
 }
 
 function installPackage(pkgs) {
-    // console.log('installPackage() pkgs => ' + JSON.stringify(pkgs));
-    var pkg = pkgs.shift();
+    setImmediate(() => {
+        // console.log('installPackage() pkgs => ' + JSON.stringify(pkgs));
+        var pkg = pkgs.shift();
 
-    if (!pkg) {
-        return;
-    }
+        if (!pkg) {
+            return;
+        }
 
-    console.log('');
-    console.log('[' + pkg.name + ']');
-    if (!pkg.dstDir) {
-        // console.log('[' + pkg.name + '] - SEM dstDir!');
-        installPackage(pkgs);
-        return;
-    }
-
-    var dstDir = path.resolve(config.envRoot, pkg.dstDir);
-    var chkDir = dstDir;
-    if (pkg.chkDir) {
-        chkDir = path.resolve(config.envRoot, pkg.chkDir);
-    }
-
-    if (fs.existsSync(chkDir)) {
-        console.log('[' + pkg.name + '] === ja instalado em ' + chkDir);
-        if (!force) {
+        console.log('');
+        console.log('[' + pkg.name + ']');
+        if (!pkg.dstDir) {
+            // console.log('[' + pkg.name + '] - SEM dstDir!');
             installPackage(pkgs);
             return;
         }
 
-        console.log('[' + pkg.name + '] === REMOVENDO ' + chkDir);
-        forceRemove(chkDir);
-    }
-
-    console.log('[' + pkg.name + '] === INSTALL');
-    var tasks = [];
-    for (var x in pkg.tasks) {
-        pkg.tasks[x].name = x;
-        tasks.push(pkg.tasks[x]);
-    }
-    runTask(config, dstDir, pkg, tasks, runTask);
-
-    function runTask(config, dstDir, pkg, tasks, next) {
-        var task = tasks.shift();
-        if (task) {
-            // console.log('[' + pkg.name + '] - TASK -> ' + JSON.stringify(task, null, 3));
-            if (taskMap[task.name]) {
-                taskMap[task.name](config, dstDir, pkg, task, tasks, next);
-            } else {
-                console.log('\t' + task.name + ' - Task nao suportada!');
-            }
-        } else {
-            console.log('[' + pkg.name + '] === OK');
-            installPackage(pkgs);
+        var dstDir = path.resolve(config.envRoot, pkg.dstDir);
+        var chkDir = dstDir;
+        if (pkg.chkDir) {
+            chkDir = path.resolve(config.envRoot, pkg.chkDir);
         }
-    }
+
+        if (fs.existsSync(chkDir)) {
+            console.log('[' + pkg.name + '] === ja instalado em ' + chkDir);
+            if (!force) {
+                installPackage(pkgs);
+                return;
+            }
+
+            console.log('[' + pkg.name + '] === REMOVENDO ' + chkDir);
+            forceRemove(chkDir);
+        }
+
+        console.log('[' + pkg.name + '] === INSTALL');
+        var tasks = [];
+        for (var x in pkg.tasks) {
+            pkg.tasks[x].name = x;
+            tasks.push(pkg.tasks[x]);
+        }
+
+        runTask(config, dstDir, pkg, tasks, runTask);
+
+        function runTask(config, dstDir, pkg, tasks, next) {
+            setImmediate(() => {
+                var task = tasks.shift();
+                if (task) {
+                    // console.log('[' + pkg.name + '] - TASK -> ' + JSON.stringify(task, null, 3));
+                    if (taskMap[task.name]) {
+                        taskMap[task.name](config, dstDir, pkg, task, tasks, next);
+                    } else {
+                        console.log('\t' + task.name + ' - Task nao suportada!');
+                    }
+                } else {
+                    console.log('[' + pkg.name + '] === OK');
+                    installPackage(pkgs);
+                }
+            });
+        }
+    });
 }
