@@ -1,20 +1,21 @@
 {
-    "name": "scoop.js",
-    "version": "1.0.0",
-    "description": "",
-    "main": "main.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "author": "João Mauricio Alves",
-    "license": "ISC",
-    "dependencies": {
-        "gunzip-maybe": "^1.4.0",
-        "minimist": "^1.2.0",
-        "tar-fs": "^1.15.3",
-        "unzipper": "^0.8.8"
-    },
-    "optionalDependencies": {
-        "xz": "^1.2.2"
-    }
+  "name": "scoop.js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "João Mauricio Alves",
+  "license": "ISC",
+  "dependencies": {
+    "decompress-zip": "^0.3.0",
+    "gunzip-maybe": "^1.4.0",
+    "minimist": "^1.2.0",
+    "tar-fs": "^1.15.3",
+    "unzipper": "^0.8.8"
+  },
+  "optionalDependencies": {
+    "xz": "^1.2.2"
+  }
 }

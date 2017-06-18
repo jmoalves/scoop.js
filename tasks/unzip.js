@@ -2,7 +2,7 @@ const fs = require('fs');
 const http = require('http');
 const os = require('os');
 const path = require('path');
-const unzip = require('unzipper');
+const DecompressZip = require('decompress-zip');
 const tar = require('tar-fs');
 const gunzip = require('gunzip-maybe');
 
@@ -68,13 +68,40 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
 
     function extractFile() {
         console.log('[' + pkg.name + ']\tUNZIP - TMPFILE ended: ' + archiveTmpFile + ' with ' + fs.lstatSync(archiveTmpFile).size + ' bytes');
+        if (archiveTmpFile.endsWith('.zip')) {
+            extractZip();
+        } else if (archiveTmpFile.endsWith('.tar.gz')) {
+            extractStream();
+        } else if (archiveTmpFile.endsWith('.tar.xz') && xz) {
+            extractStream();
+        } else {
+            throw "Can't handle file: " + archiveTmpFile;
+        }
+    }
 
+    function extractZip() {
+        var unzipper = new DecompressZip(archiveTmpFile);
+        unzipper.on('error', function(error) {
+            console.log('[' + pkg.name + ']\tUNZIP - DecompressZIP ERROR: ' + error.message);
+            throw error;
+        });
+
+        unzipper.on('extract', function(log) {
+            setImmediate(extractFinished);
+        });
+
+        // unzipper.on('progress', function(fileIndex, fileCount) {
+        //     console.log('Extracted file ' + (fileIndex + 1) + ' of ' + fileCount);
+        // });
+
+        unzipper.extract({ path: dstDir });
+    }
+
+    function extractStream() {
         var stream = fs.createReadStream(archiveTmpFile);
 
         var archive = undefined;
-        if (archiveTmpFile.endsWith('.zip')) {
-            archive = stream.pipe(unzip.Extract({ path: dstDir }));
-        } else if (archiveTmpFile.endsWith('.tar.gz')) {
+        if (archiveTmpFile.endsWith('.tar.gz')) {
             archive = stream.pipe(gunzip()).pipe(tar.extract(dstDir));
         } else if (archiveTmpFile.endsWith('.tar.xz') && xz) {
             archive = stream.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir));
