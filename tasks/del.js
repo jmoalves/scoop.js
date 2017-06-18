@@ -13,12 +13,12 @@ var deleteFolderRecursive = function(dstDir, dir) {
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 deleteFolderRecursive(dstDir, curPath);
             } else { // delete file
-                console.log('DEL -    rm ' + curPath);
+                // console.log('DEL -    rm ' + curPath);
                 fs.unlinkSync(curPath);
             }
         });
 
-        console.log('DEL - rmdir ' + target);
+        // console.log('DEL - rmdir ' + target);
         fs.rmdirSync(target);
     }
 };

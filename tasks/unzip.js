@@ -67,7 +67,7 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
     }
 
     function extractFile() {
-        console.log('[' + pkg.name + ']\tUNZIP - TMPFILE ended: ' + archiveTmpFile + ' with ' + fs.lstatSync(archiveTmpFile).size + ' bytes');
+        // console.log('[' + pkg.name + ']\tUNZIP - TMPFILE ended: ' + archiveTmpFile + ' with ' + fs.lstatSync(archiveTmpFile).size + ' bytes');
         if (archiveTmpFile.endsWith('.zip')) {
             extractZip();
         } else if (archiveTmpFile.endsWith('.tar.gz')) {
@@ -122,11 +122,11 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
     }
 
     function extractFinished() {
-        console.log('[' + pkg.name + ']\tUNZIP - finished ' + path.basename(archiveTmpFile));
+        // console.log('[' + pkg.name + ']\tUNZIP - finished ' + path.basename(archiveTmpFile));
 
         if (task.strip && task.strip == 'true') {
             var children = fs.readdirSync(dstDir);
-            console.log('[' + pkg.name + ']\tUNZIP - stripping ' + JSON.stringify(children) + ' from ' + dstDir);
+            // console.log('[' + pkg.name + ']\tUNZIP - stripping ' + JSON.stringify(children) + ' from ' + dstDir);
 
             if (children.length > 1) {
                 throw "Strip com mais de um diretorio - " + JSON.stringify(children);
@@ -143,22 +143,22 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
                 for (var child of fs.readdirSync(tmpDir)) {
                     var from = path.resolve(tmpDir, child);
                     var dst = path.resolve(dstDir, child);
-                    console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
+                    // console.log('[' + pkg.name + ']\tUNZIP - strip: ' + from + ' => ' + dst);
                     fs.renameSync(from, dst);
                 }
 
-                console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpDir);
+                // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpDir);
                 fs.rmdirSync(tmpDir);
             }
 
-            console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpRootDir);
+            // console.log('[' + pkg.name + ']\tUNZIP - strip - rmdir ' + tmpRootDir);
             fs.rmdirSync(tmpRootDir);
         }
 
-        console.log('[' + pkg.name + ']\tUNZIP - extract - rm ' + archiveTmpFile);
+        // console.log('[' + pkg.name + ']\tUNZIP - extract - rm ' + archiveTmpFile);
         fs.unlinkSync(archiveTmpFile);
 
-        console.log('[' + pkg.name + ']\tUNZIP - extract - rmdir ' + archiveTmpDir);
+        // console.log('[' + pkg.name + ']\tUNZIP - extract - rmdir ' + archiveTmpDir);
         fs.rmdirSync(archiveTmpDir);
 
         next(config, dstDir, pkg, tasks, next);
