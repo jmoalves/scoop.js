@@ -3,7 +3,7 @@
         "jdk-8-oracle",
         "wlp-workspace"
     ],
-    "dstDir": "AppSrv/wlp/runtimes/wlp-16.0.0.4",
+    "dstDir": "AppSrv/wlp/runtime/wlp-16.0.0.4",
     "tasks": {
         "unzip": {
             "strip": "true",

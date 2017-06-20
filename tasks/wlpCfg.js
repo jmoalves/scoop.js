@@ -20,8 +20,8 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
     console.log('[' + pkg.name + ']\twlpCfg - criando bin');
     fs.mkdirSync(path.resolve(dstDir, 'bin'));
 
-    console.log('[' + pkg.name + ']\twlpCfg - criando runtimes');
-    fs.mkdirSync(path.resolve(dstDir, 'runtimes'));
+    console.log('[' + pkg.name + ']\twlpCfg - criando runtime');
+    fs.mkdirSync(path.resolve(dstDir, 'runtime'));
 
     var url = task.usrTemplate.replace('${config.repoURL}', config.repoURL);
     console.log('[' + pkg.name + ']\twlpCfg - criando usr - templateUrl: ' + url);
