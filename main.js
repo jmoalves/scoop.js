@@ -74,7 +74,7 @@ function defaultConfig(userConfig) {
     newConfig.envRoot = path.resolve(newConfig.envRoot);
 
     if (!newConfig.bucket) {
-        newConfig.bucket = './buckets';
+        newConfig.bucket = './bucket';
     }
     newConfig.bucket = path.resolve(newConfig.bucket);
 
