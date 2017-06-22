@@ -1,6 +1,7 @@
 {
     "depends": [
-        "jdk-5-oracle"
+        "jdk-5-oracle",
+        "maven-config"
     ],
     "dstDir": "maven",
     "chkDir": "maven/apache-maven-3.0.5",
