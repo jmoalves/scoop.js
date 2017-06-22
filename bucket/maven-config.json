@@ -1,1 +1,8 @@
-{}
+{
+    "depends": [
+        "maven-3.5"
+    ],
+    "tasks": {
+        "mvnPasswd": {}
+    }
+}

@@ -82,6 +82,10 @@ function defaultConfig(userConfig) {
         newConfig.repoURL = 'http://localhost:8083/sti-bndes-java-env/install-repo/raw/master';
     }
 
+    if (!newConfig.mvnSecurity) {
+        newConfig.mvnSecurity = os.homedir() + '/settings-security.xml';
+    }
+
     return newConfig;
 }
 
@@ -178,6 +182,16 @@ function installPackage(pkgs) {
                         console.log('\t' + task.name + ' - Task nao suportada!');
                     }
                 } else {
+                    if (!config.pkg) {
+                        config.pkg = {};
+                    };
+
+                    config.pkg[pkg.name] = {};
+
+                    if (pkg.chkDir) {
+                        config.pkg[pkg.name].homeDir = path.resolve(config.envRoot, pkg.chkDir);
+                    }
+
                     // console.log('[' + pkg.name + '] === OK');
                     installPackage(pkgs);
                 }
