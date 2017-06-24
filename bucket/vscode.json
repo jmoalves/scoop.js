@@ -5,7 +5,7 @@
             "strip": "true",
             "linux": {
                 "x64": {
-                    "url": "${config.repoURL}/IDE/vscode/code-stable-code_1.13.0-1496940180_amd64.tar.gz"
+                    "url": "${config.repoURL}/IDE/vscode/code-stable-code_1.13.1-1497464373_amd64.tar.gz"
                 }
             },
             "win32": {
