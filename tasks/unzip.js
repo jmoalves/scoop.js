@@ -50,14 +50,20 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
     return;
 
     function receiveFile(res) {
+        if (res.statusCode !== 200) {
+            doneCallback('[' + pkg.name + '] UNZIP - HTTP GOT STATUS ' + res.statusCode + ' for ' + url);
+            return;
+        }
+
         res.on('error', (error) => {
-            console.log('[' + pkg.name + '] UNZIP - HTTP ERROR: ' + error.message);
+            doneCallback('[' + pkg.name + '] UNZIP - HTTP ERROR: ' + error.message);
+            return;
         });
 
         res.pipe(fs.createWriteStream(archiveTmpFile))
             .on('error', (error) => {
-                console.log('[' + pkg.name + '] UNZIP - TMPFILE ERROR: ' + JSON.stringify(error, null, 3));
-                throw error;
+                doneCallback('[' + pkg.name + '] UNZIP - TMPFILE ERROR: ' + JSON.stringify(error, null, 3));
+                return;
             })
             .on('finish', () => {
                 setImmediate(extractFile);
@@ -73,15 +79,16 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
         } else if (archiveTmpFile.endsWith('.tar.xz') && xz) {
             extractStream();
         } else {
-            throw "Can't handle file: " + archiveTmpFile;
+            doneCallback("Can't handle file: " + archiveTmpFile);
+            return;
         }
     }
 
     function extractZip() {
         var unzipper = new DecompressZip(archiveTmpFile);
         unzipper.on('error', function(error) {
-            console.log('[' + pkg.name + '] UNZIP - DecompressZIP ERROR: ' + error.message);
-            throw error;
+            doneCallback('[' + pkg.name + '] UNZIP - DecompressZIP ERROR: ' + error.message);
+            return;
         });
 
         unzipper.on('extract', function(log) {
@@ -104,14 +111,14 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
         } else if (archiveTmpFile.endsWith('.tar.xz') && xz) {
             archive = stream.pipe(new xz.Decompressor()).pipe(tar.extract(dstDir));
         } else {
-            throw "Can't handle file: " + archiveTmpFile;
+            doneCallback('[' + pkg.name + "] UNZIP - Can't handle file: " + archiveTmpFile);
         }
 
         archive
             .on('error', (error) => {
                 if (error.code != "ENOENT") {
-                    console.log('[' + pkg.name + '] UNZIP - EXTRACT ERROR: ' + JSON.stringify(error, null, 3));
-                    //throw error;
+                    doneCallback('[' + pkg.name + '] UNZIP - EXTRACT ERROR: ' + JSON.stringify(error, null, 3));
+                    return;
                 }
             })
             .on('finish', () => {
@@ -127,7 +134,8 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
             // console.log('[' + pkg.name + '] UNZIP - stripping ' + JSON.stringify(children) + ' from ' + dstDir);
 
             if (children.length > 1) {
-                throw "Strip com mais de um diretorio - " + JSON.stringify(children);
+                doneCallback('[' + pkg.name + '] UNZIP - Strip com mais de um diretorio - ' + JSON.stringify(children));
+                return;
             }
 
             // Diretorio temporario, para evitar colisoes
