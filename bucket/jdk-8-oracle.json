@@ -3,6 +3,11 @@
     "chkDir": "jdk/jdk1.8.0_131",
     "tasks": {
         "unzip": {
+            "win32": {
+                "x64": {
+                    "url": "${config.repoURL}/jdk/jdk1.8.0_131.zip"
+                }
+            },
             "linux": {
                 "x32": {
                     "url": "${config.repoURL}/jdk/jdk-8u131-linux-i586.tar.gz"
