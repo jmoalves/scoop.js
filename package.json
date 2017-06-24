@@ -12,6 +12,7 @@
     "decompress-zip": "^0.3.0",
     "gunzip-maybe": "^1.4.0",
     "minimist": "^1.2.0",
+    "orchestrator": "^0.3.8",
     "tar-fs": "^1.15.3",
     "unzipper": "^0.8.8"
   },

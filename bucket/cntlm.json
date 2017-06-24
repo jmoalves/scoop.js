@@ -1,8 +1,0 @@
-{
-    "dstDir": "cntlm",
-    "tasks": {
-        "unzip": {
-            "url": "${config.repoURL}/cntlm/cntlm-0.92.3.zip"
-        }
-    }
-}

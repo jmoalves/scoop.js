@@ -3,9 +3,7 @@
     "chkDir": "jdk/jdk1.5.0_22",
     "tasks": {
         "unzip": {
-            "win32": {
-                "url": "${config.repoURL}/jdk/jdk1.5.0_22.zip"
-            }
+            "url": "${config.repoURL}/jdk/jdk1.5.0_22.zip"
         }
     }
 }

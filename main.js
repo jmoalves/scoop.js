@@ -6,6 +6,7 @@ const path = require('path');
 const os = require('os');
 
 // 3rd party modules
+const Orchestrator = require('orchestrator');
 const parseArgs = require('minimist');
 
 // local modules
@@ -44,11 +45,8 @@ if (fail) {
 }
 
 console.log('config = ' + JSON.stringify(config, null, 3));
-var entries = [];
-for (var x in pkgs) {
-    entries.push(pkgs[x]);
-}
-installPackage(entries);
+createRootDir();
+orchestrate(pkgs);
 
 //----------------------------------------------------------------------------
 // Funcoes
@@ -117,6 +115,7 @@ function resolvePackage(pkg, jsons) {
     }
 
     json.name = pkg;
+    resolveTasks(json);
     jsons[pkg] = json;
 }
 
@@ -132,70 +131,105 @@ function forceRemove(file) {
     }
 }
 
-function installPackage(pkgs) {
-    setImmediate(() => {
-        // console.log('installPackage() pkgs => ' + JSON.stringify(pkgs));
-        var pkg = pkgs.shift();
-
-        if (!pkg) {
-            return;
+function resolveTasks(pkg) {
+    for (var x in pkg.tasks) {
+        pkg.tasks[x].name = x;
+        if (taskMap[x]) {
+            pkg.tasks[x].exec = taskMap[x];
+        } else {
+            console.log('TASKS - ' + x + ' - Task nao suportada!');
         }
+    }
+}
 
-        console.log('');
-        console.log('[' + pkg.name + ']');
-        if (pkg.dstDir) {
-            var dstDir = path.resolve(config.envRoot, pkg.dstDir);
-            var chkDir = dstDir;
-            if (pkg.chkDir) {
-                chkDir = path.resolve(config.envRoot, pkg.chkDir);
-            }
+function createRootDir() {
+    if (!fs.existsSync(config.envRoot)) {
+        fs.mkdirSync(config.envRoot);
+    }
+}
 
-            if (fs.existsSync(chkDir)) {
-                console.log('[' + pkg.name + '] === ja instalado em ' + chkDir);
-                if (!force) {
-                    installPackage(pkgs);
-                    return;
+function orchestrate(pkgs) {
+    var orchestrator = new Orchestrator();
+
+    var entries = [];
+    for (var x in pkgs) {
+        var pkg = pkgs[x];
+        var taskDep = [];
+
+        ((pkg, entries) => {
+            if (!checkDstDir(pkg)) {
+                // Todos os inícios de pacote dependem do final de suas dependências
+                var initialTask = pkg.name + ':BEGIN';
+                var pkgDeps = [];
+                if (pkg.depends) {
+                    pkgDeps = pkg.depends;
                 }
 
-                console.log('[' + pkg.name + '] === REMOVENDO ' + chkDir);
-                forceRemove(chkDir);
-            }
-        }
+                console.log('[' + pkg.name + '] - Tasks - ' + initialTask + ' -> ' + JSON.stringify(pkgDeps));
+                orchestrator.add(initialTask, pkgDeps, () => {
+                    console.log('[' + pkg.name + '] == BEGIN');
+                })
 
-        // console.log('[' + pkg.name + '] === INSTALL');
-        var tasks = [];
-        for (var x in pkg.tasks) {
-            pkg.tasks[x].name = x;
-            tasks.push(pkg.tasks[x]);
-        }
-
-        runTask(config, dstDir, pkg, tasks, runTask);
-
-        function runTask(config, dstDir, pkg, tasks, next) {
-            setImmediate(() => {
-                var task = tasks.shift();
-                if (task) {
-                    // console.log('[' + pkg.name + '] - TASK -> ' + JSON.stringify(task, null, 3));
-                    if (taskMap[task.name]) {
-                        taskMap[task.name](config, dstDir, pkg, task, tasks, next);
-                    } else {
-                        console.log('\t' + task.name + ' - Task nao suportada!');
-                    }
-                } else {
-                    if (!config.pkg) {
-                        config.pkg = {};
-                    };
-
-                    config.pkg[pkg.name] = {};
-
-                    if (pkg.chkDir) {
-                        config.pkg[pkg.name].homeDir = path.resolve(config.envRoot, pkg.chkDir);
-                    }
-
-                    // console.log('[' + pkg.name + '] === OK');
-                    installPackage(pkgs);
+                // Todos as tasks do pacote dependem de todas as anteriores (rodam em sequência)
+                taskDep.push(initialTask);
+                for (var y in pkg.tasks) {
+                    var task = pkg.tasks[y];
+                    ((task) => {
+                        var taskName = pkg.name + ':' + task.name;
+                        console.log('[' + pkg.name + '] - Tasks - ' + taskName + ' -> ' + JSON.stringify(taskDep));
+                        orchestrator.add(taskName, taskDep, (doneCallback) => {
+                            var dstDir = undefined;
+                            if (pkg.dstDir) {
+                                dstDir = path.resolve(config.envRoot, pkg.dstDir);
+                            }
+                            task.exec(config, dstDir, pkg, task, doneCallback);
+                        });
+                        taskDep = [taskName];
+                    })(task);
                 }
-            });
+            }
+
+            // O final do pacote depende de todas as task (se houver)
+            var finalTask = pkg.name;
+            console.log('[' + pkg.name + '] - Tasks - ' + finalTask + ' -> ' + JSON.stringify(taskDep));
+            orchestrator.add(finalTask, taskDep, () => {
+                if (!config.pkg) {
+                    config.pkg = {};
+                };
+
+                config.pkg[pkg.name] = {};
+                if (pkg.chkDir) {
+                    config.pkg[pkg.name].homeDir = path.resolve(config.envRoot, pkg.chkDir);
+                }
+                console.log('[' + pkg.name + '] == END');
+            })
+            entries.push(finalTask);
+        })(pkg, entries);
+    }
+
+    console.log('=== START - ' + JSON.stringify(entries));
+    orchestrator.start(entries, (err) => {
+        console.log('=== ACABOU! ' + err);
+    })
+}
+
+function checkDstDir(pkg) {
+    if (pkg.dstDir) {
+        var dstDir = path.resolve(config.envRoot, pkg.dstDir);
+        var chkDir = dstDir;
+        if (pkg.chkDir) {
+            chkDir = path.resolve(config.envRoot, pkg.chkDir);
         }
-    });
+
+        if (fs.existsSync(chkDir)) {
+            console.log('[' + pkg.name + '] === ja instalado em ' + chkDir);
+            if (!force) {
+                return true;
+            }
+            console.log('[' + pkg.name + '] === REMOVENDO ' + chkDir);
+            forceRemove(chkDir);
+        }
+    }
+
+    return false;
 }

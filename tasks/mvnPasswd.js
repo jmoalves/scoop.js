@@ -3,7 +3,9 @@ const os = require('os');
 const path = require('path');
 const spawn = require('child_process').spawn;
 
-module.exports = function(config, dstDir, pkg, task, tasks, next) {
+module.exports = function(config, dstDir, pkg, task, doneCallback) {
+    console.log('[' + pkg.name + '] mvnPasswd');
+
     var inject = {
         "password": "XXXyyyZZZ"
     };
@@ -13,9 +15,11 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
 
     function securityRedirect() {
         const relocSecurity = config.mvnSecurity;
+        console.log('[' + pkg.name + '] mvnPasswd - relocSecurity ' + relocSecurity);
+
         mkdirHierarchySync(path.dirname(relocSecurity));
         if (!fs.existsSync(relocSecurity)) {
-            console.log('[' + pkg.name + ']\tmvnPasswd - create ' + relocSecurity);
+            console.log('[' + pkg.name + '] mvnPasswd - create ' + relocSecurity);
             fs.writeFileSync(relocSecurity, `<settingsSecurity>
 	<relocation>${security}</relocation>
 </settingsSecurity>
@@ -25,15 +29,19 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
 
     function masterPassword() {
         const mavenHome = config.pkg['maven-3.5'].homeDir;
+        console.log('[' + pkg.name + '] mvnPasswd - mavenHome ' + mavenHome);
+
         const maven = path.resolve(mavenHome, 'bin', 'mvn');
+        console.log('[' + pkg.name + '] mvnPasswd - maven ' + maven);
+
         const mvn = spawn(maven, ['--encrypt-master-password', inject.password]);
         mvn.stdout.on('data', (data) => {
-            console.log(`stdout: `);
+            console.log(`stdout: ${data}`);
             const password = data;
             const security = path.resolve(os.homedir(), 'teste', '.m2', 'settings-security.xml');
             mkdirHierarchySync(path.dirname(security));
             if (!fs.existsSync(security)) {
-                console.log('[' + pkg.name + ']\tmvnPasswd - create ' + security);
+                console.log('[' + pkg.name + '] mvnPasswd - create ' + security);
                 fs.writeFileSync(security, `<settingsSecurity>
 	<master>${password}</master>
 </settingsSecurity>
@@ -41,7 +49,7 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
 
             }
 
-            next(config, dstDir, pkg, tasks, next);
+            doneCallback(null);
         });
     }
 }
@@ -57,6 +65,6 @@ function mkdirHierarchySync(pathname) {
 
     mkdirHierarchySync(path.dirname(pathname));
 
-    console.log('[' + pkg.name + ']\tmvnPasswd - mkdir ' + pathname);
+    console.log('[' + pkg.name + '] mvnPasswd - mkdir ' + pathname);
     fs.mkdirSync(pathname);
 }

@@ -23,7 +23,7 @@ var deleteFolderRecursive = function(dstDir, dir) {
     }
 };
 
-module.exports = function(config, dstDir, pkg, task, tasks, next) {
+module.exports = function(config, dstDir, pkg, task, doneCallback) {
     var dirs = [];
     if (typeof task === "string") {
         dirs.push(task);
@@ -38,5 +38,5 @@ module.exports = function(config, dstDir, pkg, task, tasks, next) {
         deleteFolderRecursive(dstDir, dir);
     }
 
-    next(config, dstDir, pkg, tasks, next);
+    doneCallback(null);
 }

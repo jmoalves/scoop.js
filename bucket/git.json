@@ -1,8 +1,0 @@
-{
-    "dstDir": "git",
-    "tasks": {
-        "unzip": {
-            "url": "${config.repoURL}/git/PortableGit-2.11.1-64-bit.7z.exe"
-        }
-    }
-}
