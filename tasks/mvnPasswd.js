@@ -10,6 +10,8 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
         "password": "XXXyyyZZZ"
     };
 
+    const security = path.resolve(os.homedir(), 'teste', '.m2', 'settings-security.xml');
+
     securityRedirect();
     masterPassword();
 
@@ -36,9 +38,7 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
 
         const mvn = spawn(maven, ['--encrypt-master-password', inject.password]);
         mvn.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
-            const password = data;
-            const security = path.resolve(os.homedir(), 'teste', '.m2', 'settings-security.xml');
+            const password = `${data}`.replace(os.EOL, '');
             mkdirHierarchySync(path.dirname(security));
             if (!fs.existsSync(security)) {
                 console.log('[' + pkg.name + '] mvnPasswd - create ' + security);
@@ -46,25 +46,24 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
 	<master>${password}</master>
 </settingsSecurity>
 `);
-
             }
 
             doneCallback(null);
         });
     }
-}
 
-function mkdirHierarchySync(pathname) {
-    if (!pathname) {
-        return;
+    function mkdirHierarchySync(pathname) {
+        if (!pathname) {
+            return;
+        }
+
+        if (fs.existsSync(pathname)) {
+            return;
+        }
+
+        mkdirHierarchySync(path.dirname(pathname));
+
+        console.log('[' + pkg.name + '] mvnPasswd - mkdir ' + pathname);
+        fs.mkdirSync(pathname);
     }
-
-    if (fs.existsSync(pathname)) {
-        return;
-    }
-
-    mkdirHierarchySync(path.dirname(pathname));
-
-    console.log('[' + pkg.name + '] mvnPasswd - mkdir ' + pathname);
-    fs.mkdirSync(pathname);
 }
