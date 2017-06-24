@@ -209,7 +209,12 @@ function orchestrate(pkgs) {
 
     console.log('=== START - ' + JSON.stringify(entries));
     orchestrator.start(entries, (err) => {
-        console.log('=== ACABOU! ' + err);
+        console.log('');
+        console.log('===============================');
+        if (err) {
+            console.log('ERROR: ' + err);
+            console.log('===============================');
+        }
     })
 }
 
