@@ -153,11 +153,12 @@ function orchestrate(pkgs) {
     var orchestrator = new Orchestrator();
 
     var entries = [];
+    var lastPkg = undefined;
     for (var x in pkgs) {
         var pkg = pkgs[x];
         var taskDep = [];
 
-        ((pkg, entries) => {
+        ((lastPkg, pkg, entries) => {
             if (!checkDstDir(pkg)) {
                 // Todos os inícios de pacote dependem do final de suas dependências
                 var initialTask = pkg.name + ':BEGIN';
@@ -165,9 +166,14 @@ function orchestrate(pkgs) {
                 if (pkg.depends) {
                     pkgDeps = pkg.depends;
                 }
+                if (lastPkg && !pkgDeps.find((x) => x == lastPkg)) {
+                    // Serialized install
+                    pkgDeps.push(lastPkg);
+                }
 
                 console.log('[' + pkg.name + '] - Tasks - ' + initialTask + ' -> ' + JSON.stringify(pkgDeps));
                 orchestrator.add(initialTask, pkgDeps, () => {
+                    console.log('');
                     pkg.getElapsed = measureTime();
                     console.log('[' + pkg.name + '] == BEGIN');
                 })
@@ -211,7 +217,9 @@ function orchestrate(pkgs) {
                     pkg.elapsed.milliseconds + 'ms');
             })
             entries.push(finalTask);
-        })(pkg, entries);
+        })(lastPkg, pkg, entries);
+
+        lastPkg = pkg.name;
     }
 
     console.log('=== START - ' + JSON.stringify(entries));
