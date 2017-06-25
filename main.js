@@ -46,6 +46,8 @@ if (fail) {
 }
 
 console.log('config = ' + JSON.stringify(config, null, 3));
+console.log('');
+
 createRootDir();
 orchestrate(pkgs);
 
@@ -159,27 +161,32 @@ function orchestrate(pkgs) {
         var taskDep = [];
 
         ((lastPkg, pkg, entries) => {
-            if (!checkDstDir(pkg)) {
-                // Todos os inícios de pacote dependem do final de suas dependências
-                var initialTask = pkg.name + ':BEGIN';
-                var pkgDeps = [];
-                if (pkg.depends) {
-                    pkgDeps = pkg.depends;
-                }
-                if (lastPkg && !pkgDeps.find((x) => x == lastPkg)) {
-                    // Serialized install
-                    pkgDeps.push(lastPkg);
-                }
+            // Todos os inícios de pacote dependem do final de suas dependências
+            var initialTask = pkg.name + ':BEGIN';
+            var pkgDeps = [];
+            if (pkg.depends) {
+                pkgDeps = pkg.depends;
+            }
+            if (lastPkg && !pkgDeps.find((x) => x == lastPkg)) {
+                // Serialized install
+                pkgDeps.push(lastPkg);
+            }
 
-                console.log('[' + pkg.name + '] - Tasks - ' + initialTask + ' -> ' + JSON.stringify(pkgDeps));
-                orchestrator.add(initialTask, pkgDeps, () => {
+            pkg.installed = isInstalled(pkg);
+
+            console.log('[' + pkg.name + '] - Tasks - ' + initialTask + ' -> ' + JSON.stringify(pkgDeps));
+            orchestrator.add(initialTask, pkgDeps, () => {
+                if (!pkg.installed) {
                     console.log('');
                     pkg.getElapsed = measureTime();
                     console.log('[' + pkg.name + '] == BEGIN');
-                })
+                }
+            })
 
+            taskDep.push(initialTask);
+
+            if (!pkg.installed) {
                 // Todos as tasks do pacote dependem de todas as anteriores (rodam em sequência)
-                taskDep.push(initialTask);
                 for (var y in pkg.tasks) {
                     var task = pkg.tasks[y];
                     ((task) => {
@@ -197,7 +204,7 @@ function orchestrate(pkgs) {
                 }
             }
 
-            // O final do pacote depende de todas as task (se houver)
+            // O final do pacote depende de todas as tasks (se houver)
             var finalTask = pkg.name;
             console.log('[' + pkg.name + '] - Tasks - ' + finalTask + ' -> ' + JSON.stringify(taskDep));
             orchestrator.add(finalTask, taskDep, () => {
@@ -210,11 +217,13 @@ function orchestrate(pkgs) {
                     config.pkg[pkg.name].homeDir = path.resolve(config.envRoot, pkg.chkDir);
                 }
 
-                pkg.elapsed = pkg.getElapsed();
-                pkg.getElapsed = undefined;
-                console.log('[' + pkg.name + '] == END - ' +
-                    pkg.elapsed.seconds + 's ' +
-                    pkg.elapsed.milliseconds + 'ms');
+                if (pkg.getElapsed) {
+                    pkg.elapsed = pkg.getElapsed();
+                    pkg.getElapsed = undefined;
+                    console.log('[' + pkg.name + '] == END - ' +
+                        pkg.elapsed.seconds + 's ' +
+                        pkg.elapsed.milliseconds + 'ms');
+                }
             })
             entries.push(finalTask);
         })(lastPkg, pkg, entries);
@@ -222,6 +231,8 @@ function orchestrate(pkgs) {
         lastPkg = pkg.name;
     }
 
+    console.log('');
+    console.log('===============================');
     console.log('=== START - ' + JSON.stringify(entries));
     var getElapsed = measureTime();
 
@@ -242,7 +253,7 @@ function orchestrate(pkgs) {
     })
 }
 
-function checkDstDir(pkg) {
+function isInstalled(pkg) {
     if (pkg.dstDir) {
         var dstDir = path.resolve(config.envRoot, pkg.dstDir);
         var chkDir = dstDir;
@@ -255,6 +266,7 @@ function checkDstDir(pkg) {
             if (!force) {
                 return true;
             }
+
             console.log('[' + pkg.name + '] === REMOVENDO ' + chkDir);
             forceRemove(chkDir);
         }
