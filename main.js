@@ -6,6 +6,7 @@ const path = require('path');
 const os = require('os');
 
 // 3rd party modules
+const measureTime = require('measure-time');
 const Orchestrator = require('orchestrator');
 const parseArgs = require('minimist');
 
@@ -167,6 +168,7 @@ function orchestrate(pkgs) {
 
                 console.log('[' + pkg.name + '] - Tasks - ' + initialTask + ' -> ' + JSON.stringify(pkgDeps));
                 orchestrator.add(initialTask, pkgDeps, () => {
+                    pkg.getElapsed = measureTime();
                     console.log('[' + pkg.name + '] == BEGIN');
                 })
 
@@ -201,20 +203,34 @@ function orchestrate(pkgs) {
                 if (pkg.chkDir) {
                     config.pkg[pkg.name].homeDir = path.resolve(config.envRoot, pkg.chkDir);
                 }
-                console.log('[' + pkg.name + '] == END');
+
+                pkg.elapsed = pkg.getElapsed();
+                pkg.getElapsed = undefined;
+                console.log('[' + pkg.name + '] == END - ' +
+                    pkg.elapsed.seconds + 's ' +
+                    pkg.elapsed.milliseconds + 'ms');
             })
             entries.push(finalTask);
         })(pkg, entries);
     }
 
     console.log('=== START - ' + JSON.stringify(entries));
+    var getElapsed = measureTime();
+
     orchestrator.start(entries, (err) => {
+        var elapsed = getElapsed();
         console.log('');
         console.log('===============================');
         if (err) {
+            console.log('');
             console.log('ERROR: ' + err);
-            console.log('===============================');
+            console.log('');
+        } else {
+            console.log('FINISH - ' +
+                elapsed.seconds + 's ' +
+                elapsed.milliseconds + 'ms');
         }
+        console.log('===============================');
     })
 }
 
