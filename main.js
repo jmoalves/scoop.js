@@ -45,6 +45,7 @@ if (fail) {
     process.exit(1);
 }
 
+console.log('');
 console.log('config = ' + JSON.stringify(config, null, 3));
 console.log('');
 
@@ -74,10 +75,15 @@ function defaultConfig(userConfig) {
     }
     newConfig.envRoot = path.resolve(newConfig.envRoot);
 
-    if (!newConfig.bucket) {
-        newConfig.bucket = './bucket';
+    if (!newConfig.buckets) {
+        newConfig.buckets = [ 
+            './bucket' 
+        ];
     }
-    newConfig.bucket = path.resolve(newConfig.bucket);
+
+    for (var i in newConfig.buckets) {
+        newConfig.buckets[i] = path.resolve(newConfig.buckets[i]);
+    }
 
     if (!newConfig.repoURL) {
         newConfig.repoURL = 'http://localhost:8083/sti-bndes-java-env/install-repo/raw/master';
@@ -101,9 +107,8 @@ function resolvePackage(pkg, jsons) {
         return;
     }
 
-    var file = path.resolve(config.bucket, pkg + '.json');
-    // console.log('DEBUG: ' + pkg + ' bucket - ' + config.bucket + ' file: ' + file);
-    if (!fs.existsSync(file)) {
+    var file = packageDescription(pkg);
+    if (!file) {
         console.log(file + ' nao existe');
         fail = true;
         return;
@@ -132,6 +137,19 @@ function forceRemove(file) {
     } else {
         fs.unlinkSync(file);
     }
+}
+
+function packageDescription(pkg) {
+    for (var i in config.buckets) {
+        var file = path.resolve(config.buckets[i], pkg + '.json');
+
+        console.log('DEBUG: ' + pkg + ' bucket - ' + config.buckets[i] + ' file: ' + file);
+        if (fs.existsSync(file)) {
+            return file;
+        }
+    }
+
+    return null;
 }
 
 function resolveTasks(pkg) {
@@ -174,7 +192,7 @@ function orchestrate(pkgs) {
 
             pkg.installed = isInstalled(pkg);
 
-            console.log('[' + pkg.name + '] - Tasks - ' + initialTask + ' -> ' + JSON.stringify(pkgDeps));
+            //console.log('[' + pkg.name + '] - Tasks - ' + initialTask + ' -> ' + JSON.stringify(pkgDeps));
             orchestrator.add(initialTask, pkgDeps, () => {
                 if (!pkg.installed) {
                     console.log('');
@@ -191,7 +209,7 @@ function orchestrate(pkgs) {
                     var task = pkg.tasks[y];
                     ((task) => {
                         var taskName = pkg.name + ':' + task.name;
-                        console.log('[' + pkg.name + '] - Tasks - ' + taskName + ' -> ' + JSON.stringify(taskDep));
+                        //console.log('[' + pkg.name + '] - Tasks - ' + taskName + ' -> ' + JSON.stringify(taskDep));
                         orchestrator.add(taskName, taskDep, (doneCallback) => {
                             var dstDir = undefined;
                             if (pkg.dstDir) {
@@ -206,7 +224,7 @@ function orchestrate(pkgs) {
 
             // O final do pacote depende de todas as tasks (se houver)
             var finalTask = pkg.name;
-            console.log('[' + pkg.name + '] - Tasks - ' + finalTask + ' -> ' + JSON.stringify(taskDep));
+            //console.log('[' + pkg.name + '] - Tasks - ' + finalTask + ' -> ' + JSON.stringify(taskDep));
             orchestrator.add(finalTask, taskDep, () => {
                 if (!config.pkg) {
                     config.pkg = {};
