@@ -10,7 +10,7 @@ var xz = undefined;
 try {
     xz = require("xz");
 } catch (error) {
-    console.log('Failed xz dependency');
+    console.log('INFO: xz not available');
     xz = undefined;
 }
 
