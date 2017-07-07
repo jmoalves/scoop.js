@@ -143,8 +143,8 @@ function packageDescription(pkg) {
     for (var i in config.buckets) {
         var file = path.resolve(config.buckets[i], pkg + '.json');
 
-        console.log('DEBUG: ' + pkg + ' bucket - ' + config.buckets[i] + ' file: ' + file);
         if (fs.existsSync(file)) {
+            console.log('DEBUG: ' + pkg + ' => ' + file);
             return file;
         }
     }
