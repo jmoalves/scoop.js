@@ -1,7 +1,13 @@
+// Node dependencies
 const fs = require('fs');
 const http = require('http');
+const https = require('https');
 const path = require('path');
+//
+
+// 3rd party dependencies
 const unzip = require('unzipper');
+//
 
 module.exports = function(config, dstDir, pkg, task, doneCallback) {
     if (!task.usrTemplate) {
@@ -26,7 +32,17 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
     var url = task.usrTemplate.replace('${config.repoURL}', config.repoURL);
     console.log('[' + pkg.name + '] wlpCfg - criando usr - templateUrl: ' + url);
 
-    http.get(url, (res) => {
+    if (url.startsWith("http://")) {
+        http.get(url, extractFile);
+    } else if (url.startsWith("https://")) {
+        https.get(url, extractFile);
+    } else {
+        doneCallback('[' + pkg.name + '] wlpCfg - Can\'t handle ' + url);
+    }
+
+    return;
+
+    function extractFile(res) {
         res.on('error', (error) => {
             console.log('[' + pkg.name + '] wlpCfg - HTTP ERROR: ' + error.message);
         });
@@ -59,5 +75,5 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
             .on('finish', () => {
                 doneCallback(null);
             });
-    });
+    }
 }
