@@ -1,10 +1,16 @@
+// Node dependencies
 const fs = require('fs');
 const http = require('http');
+const https = require('https');
 const os = require('os');
 const path = require('path');
+//
+
+// 3rd party dependencies
 const DecompressZip = require('decompress-zip');
-const tar = require('tar-fs');
 const gunzip = require('gunzip-maybe');
+const tar = require('tar-fs');
+//
 
 var xz = undefined;
 try {
@@ -46,7 +52,14 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
     var archiveTmpDir = fs.mkdtempSync(os.tmpdir() + path.sep + 'unzip-http-');
     var archiveTmpFile = archiveTmpDir + path.sep + path.basename(url);
 
-    http.get(url, receiveFile);
+    if (url.startsWith("http://")) {
+        http.get(url, receiveFile);
+    } else if (url.startsWith("https://")) {
+        https.get(url, receiveFile);
+    } else {
+        doneCallback('[' + pkg.name + '] UNZIP - Can\'t handle ' + url);
+    }
+
     return;
 
     function receiveFile(res) {
