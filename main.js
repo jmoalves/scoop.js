@@ -109,7 +109,7 @@ function resolvePackage(pkg, jsons) {
 
     var file = packageDescription(pkg);
     if (!file) {
-        console.log(file + ' nao existe');
+        console.log(pkg + ' nao encontrado');
         fail = true;
         return;
     }
