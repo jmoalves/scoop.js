@@ -10,6 +10,7 @@ const path = require('path');
 const DecompressZip = require('decompress-zip');
 const gunzip = require('gunzip-maybe');
 const tar = require('tar-fs');
+const w7z = require('node-7z');
 //
 
 var xz = undefined;
@@ -85,8 +86,10 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
 
     function extractFile() {
         // console.log('[' + pkg.name + ']\tUNZIP - TMPFILE ended: ' + archiveTmpFile + ' with ' + fs.lstatSync(archiveTmpFile).size + ' bytes');
-        if (archiveTmpFile.endsWith('.zip')) {
+        if (archiveTmpFile.endsWith('.zip') ) {
             extractZip();
+        } else if (archiveTmpFile.endsWith('.7z.exe') ) {
+            extractWrapper7Zip();
         } else if (archiveTmpFile.endsWith('.tar.gz')) {
             extractStream();
         } else if (archiveTmpFile.endsWith('.tar.xz') && xz) {
@@ -113,6 +116,18 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
         // });
 
         unzipper.extract({ path: dstDir });
+    }
+
+    function extractWrapper7Zip() {
+        var unzipper = new w7z();
+        unzipper.extractFull(archiveTmpFile, dstDir)
+            .catch(err => {
+                doneCallback('[' + pkg.name + '] UNZIP - 7Zip ERROR: ' + err);
+                return;
+            })
+            .then(() => {
+                setImmediate(extractFinished);
+            })
     }
 
     function extractStream() {
