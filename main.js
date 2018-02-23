@@ -155,10 +155,10 @@ function packageDescription(pkg) {
 function resolveTasks(pkg) {
     for (var x in pkg.tasks) {
         pkg.tasks[x].name = x;
-        if (taskMap[x]) {
-            pkg.tasks[x].exec = taskMap[x];
-        } else {
-            console.log('TASKS - ' + x + ' - Task nao suportada!');
+        pkg.tasks[x].exec = taskMap[x];
+        if (!taskMap.hasOwnProperty(x)) {
+            var msg = '[' + pkg.name + '] ' + x + ' <-- Task nao suportada!';
+            throw msg;
         }
     }
 }
