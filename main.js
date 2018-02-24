@@ -212,8 +212,10 @@ function orchestrate(pkgs) {
                         //console.log('[' + pkg.name + '] - Tasks - ' + taskName + ' -> ' + JSON.stringify(taskDep));
                         orchestrator.add(taskName, taskDep, (doneCallback) => {
                             var dstDir = undefined;
-                            if (pkg.dstDir) {
+                            if (pkg.dstDir && pkg.dstDir.length() > 0) {
                                 dstDir = path.resolve(config.envRoot, pkg.dstDir);
+                            } else {
+                                dstDir = path.resolve(config.envRoot);                                
                             }
                             task.exec(config, dstDir, pkg, task, doneCallback);
                         });
@@ -272,7 +274,7 @@ function orchestrate(pkgs) {
 }
 
 function isInstalled(pkg) {
-    if (pkg.dstDir) {
+    if (pkg.hasOwnProperty('dstDir')) {
         var dstDir = path.resolve(config.envRoot, pkg.dstDir);
         var chkDir = dstDir;
         if (pkg.chkDir) {

@@ -17,7 +17,13 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
     var url = task.url.replace('${config.repoURL}', config.repoURL);
     console.log('[' + pkg.name + '] getFile - url: ' + url);
 
-    var dst = path.resolve(dstDir, task.to);
+    // console.log('[' + pkg.name + '] getFile - to: "' + task.to + '" - dstDir: ' + dstDir);
+    var dst = undefined;
+    if (task.to && task.to.length() > 0) {
+        dst = path.resolve(dstDir, task.to);
+    } else {
+        dst = path.resolve(dstDir);
+    }
     console.log('[' + pkg.name + '] getFile - to: ' + dst);
     mkdirHier(dst);
 
@@ -26,7 +32,7 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
     return;
 
     function getFiles(files) {
-        console.log('[' + pkg.name + '] getFile - files: ' + files);
+        // console.log('[' + pkg.name + '] getFile - files: ' + files);
         var file = files.shift();
         if (!file) {
             doneCallback(null);
@@ -51,7 +57,7 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
             });
     
             var filename = path.resolve(dst, file);
-            console.log('[' + pkg.name + '] getFile - SAVE: ' + filename);
+            // console.log('[' + pkg.name + '] getFile - SAVE: ' + filename);
             res.pipe(fs.createWriteStream(filename)
                 .on('error', (error) => {
                     console.log('[' + pkg.name + '] getFile - SAVE ERROR - ' + error.message);
