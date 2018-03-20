@@ -27,7 +27,7 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
     var dirs = [];
     if (typeof task.files === "string") {
         dirs.push(task.files);
-    } else if (Array.isArray(task)) {
+    } else if (Array.isArray(task.files)) {
         dirs = task.files;
     } else {
         throw 'Invalid task - ' + JSON.stringify(task);
