@@ -25,10 +25,10 @@ var deleteFolderRecursive = function(dstDir, dir) {
 
 module.exports = function(config, dstDir, pkg, task, doneCallback) {
     var dirs = [];
-    if (typeof task === "string") {
-        dirs.push(task);
+    if (typeof task.files === "string") {
+        dirs.push(task.files);
     } else if (Array.isArray(task)) {
-        dirs = task;
+        dirs = task.files;
     } else {
         throw 'Invalid task - ' + JSON.stringify(task);
     }

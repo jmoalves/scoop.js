@@ -15,7 +15,11 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
 
     var dstJar = path.resolve(dstDir);
     var jdbcResDir = path.dirname(dstJar);
-    var jdbcCfgDir = jdbcResDir.replace('resources', 'config');
+
+    var dstXml = dstJar
+            .replace('resources', 'config')
+            .replace('.jar', '.xml');
+    var jdbcCfgDir = path.dirname(dstXml);
 
     console.log('[' + pkg.name + '] wlpJDBC - configDir: ' + jdbcCfgDir);
     fs.mkdirSync(jdbcCfgDir);
@@ -46,8 +50,15 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
                 console.log('[' + pkg.name + '] wlpJDBC - SAVE ERROR - ' + error.message);
             })
             .on('finish', () => {
-                doneCallback(null);
+                generateConfig();
             })
         );
     }
+
+    function generateConfig() {
+        console.log('[' + pkg.name + '] wlpJDBC - dstJar: ' + dstJar);
+        console.log('[' + pkg.name + '] wlpJDBC - dstXml: ' + dstXml);
+        doneCallback(null);
+    }
 }
+

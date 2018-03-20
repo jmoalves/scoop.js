@@ -154,11 +154,26 @@ function packageDescription(pkg) {
 
 function resolveTasks(pkg) {
     for (var x in pkg.tasks) {
-        pkg.tasks[x].name = x;
-        pkg.tasks[x].exec = taskMap[x];
         if (!taskMap.hasOwnProperty(x)) {
             var msg = '[' + pkg.name + '] ' + x + ' <-- Task nao suportada!';
             throw msg;
+        }
+
+        var taskObj = pkg.tasks[x];
+        var idx = 0;
+        if (Array.isArray(taskObj)) {
+            for (let task of taskObj) {
+                resolveTask(task, x, idx);
+                idx++;
+            }
+        } else {
+            resolveTask(taskObj, x, idx);
+        }
+
+        function resolveTask(task, name, index) {
+            task.name = name;
+            task.index = index;
+            task.exec = taskMap[name];
         }
     }
 }
@@ -206,22 +221,15 @@ function orchestrate(pkgs) {
             if (!pkg.installed) {
                 // Todos as tasks do pacote dependem de todas as anteriores (rodam em sequência)
                 for (var y in pkg.tasks) {
-                    var task = pkg.tasks[y];
-                    ((task) => {
-                        var taskName = pkg.name + ':' + task.name;
-                        //console.log('[' + pkg.name + '] - Tasks - ' + taskName + ' -> ' + JSON.stringify(taskDep));
-                        orchestrator.add(taskName, taskDep, (doneCallback) => {
-                            var dstDir = undefined;
-                            if (pkg.dstDir && pkg.dstDir.length > 0) {
-                                dstDir = path.resolve(config.envRoot, pkg.dstDir);
-                            } else {
-                                dstDir = path.resolve(config.envRoot);                                
-                            }
-                            task.exec(config, dstDir, pkg, task, doneCallback);
-                        });
-                        taskDep = [taskName];
-                    })(task);
-                }
+                    var taskObj = pkg.tasks[y];
+                    if (Array.isArray(taskObj)) {
+                        for (let task of taskObj) {
+                            runTask(task);
+                        }
+                    } else {
+                        runTask(taskObj);                        
+                    }
+                 }
             }
 
             // O final do pacote depende de todas as tasks (se houver)
@@ -246,6 +254,21 @@ function orchestrate(pkgs) {
                 }
             })
             entries.push(finalTask);
+
+            function runTask(task) {
+                var taskName = pkg.name + ':' + task.name + ':' + task.index;
+                //console.log('[' + pkg.name + '] - Tasks - ' + taskName + ' -> ' + JSON.stringify(taskDep));
+                orchestrator.add(taskName, taskDep, (doneCallback) => {
+                    var dstDir = undefined;
+                    if (pkg.dstDir && pkg.dstDir.length > 0) {
+                        dstDir = path.resolve(config.envRoot, pkg.dstDir);
+                    } else {
+                        dstDir = path.resolve(config.envRoot);                                
+                    }
+                    task.exec(config, dstDir, pkg, task, doneCallback);
+                });
+                taskDep = [taskName];
+            }
         })(lastPkg, pkg, entries);
 
         lastPkg = pkg.name;
