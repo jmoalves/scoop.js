@@ -19,7 +19,7 @@ module.exports = function(config, dstDir, pkg, task, doneCallback) {
 
     // console.log('[' + pkg.name + '] getFile - to: "' + task.to + '" - dstDir: ' + dstDir);
     var dst = undefined;
-    if (task.to && task.to.length() > 0) {
+    if (task.to && task.to.length > 0) {
         dst = path.resolve(dstDir, task.to);
     } else {
         dst = path.resolve(dstDir);
