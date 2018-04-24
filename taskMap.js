@@ -4,6 +4,7 @@ module.exports = {
     "editFile": require('./tasks/editFile.js'),
     "exec": require('./tasks/exec.js'),
     "mvnPasswd": require('./tasks/mvnPasswd.js'),
+    "runCmd": require('./tasks/runCmd.js'),
     "sfxRun": require('./tasks/sfxRun.js'),
     "template": require('./tasks/template.js'),
     "unzip": require('./tasks/unzip.js'),
